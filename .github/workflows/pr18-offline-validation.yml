@@ -1,0 +1,22 @@
+name: PR18 offline validation
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      matrix:
+        python: ['3.12', '3.14']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '${{ matrix.python }}'
+      - name: Install Linux isolation library
+        run: sudo apt-get update && sudo apt-get install -y libseccomp2
+      - name: Synthetic regressions only, empty environment
+        run: env -i PATH="$PATH" PYTHONPATH=. HARNESS_ISOLATION=strict python -m unittest discover -s tests -v
